@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane fx:id="scenePane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1280.0" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.figma.vehicleInformationController">
+    <children>
+        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#161616" height="720.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="258.0" />
+      <Label layoutX="35.0" layoutY="46.0" text="VAD" textFill="#fbfbfb">
+         <font>
+            <Font name="System Bold" size="24.0" />
+         </font>
+      </Label>
+      <HBox fx:id="mainWindowBox" layoutX="35.0" layoutY="148.0" spacing="15.0">
+         <children>
+            <ImageView fx:id="grid1icon" fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../../../../../../../../../../Usage/GP/Second%20Term/Desktop%20app/gridwhite.png" />
+               </image>
+            </ImageView>
+            <Label fx:id="mainWindowBtn" text="Main Window" textFill="#fbfbfb">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Label>
+         </children>
+      </HBox>
+      <HBox fx:id="submitVideoBox" layoutX="35.0" layoutY="263.0" spacing="15.0">
+         <children>
+            <ImageView fx:id="grid1icon1" fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../../../../../../../../../../Usage/GP/Second%20Term/Desktop%20app/videowhite.png" />
+               </image>
+            </ImageView>
+            <Label fx:id="submitVideoBtn" text="Submit Video" textFill="#fbfbfb">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Label>
+         </children>
+      </HBox>
+      <HBox fx:id="viewHistoryBox" layoutX="33.0" layoutY="384.0" spacing="15.0">
+         <children>
+            <ImageView fx:id="grid1icon11" fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../../../../../../../../../../Usage/GP/Second%20Term/Desktop%20app/archieWhite.png" />
+               </image>
+            </ImageView>
+            <Label fx:id="viewHistoryBtn" text="View History" textFill="#fbfbfb">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Label>
+         </children>
+      </HBox>
+      <HBox fx:id="exitBox" layoutX="33.0" layoutY="496.0" spacing="15.0">
+         <children>
+            <ImageView fx:id="grid1icon111" fitHeight="24.0" fitWidth="37.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../../../../../../../../../../Usage/GP/Second%20Term/Desktop%20app/exitwhite.png" />
+               </image>
+               <HBox.margin>
+                  <Insets />
+               </HBox.margin>
+            </ImageView>
+            <Label fx:id="exitBtn" text="Exit" textFill="#fbfbfb">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Label>
+         </children>
+      </HBox>
+        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#d9d9d9" height="727.0" layoutX="258.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="1022.0" />
+      <Label layoutX="685.0" layoutY="32.0" text="Vehicle Information">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <AnchorPane layoutX="489.0" layoutY="143.0" prefHeight="497.0" prefWidth="333.0" styleClass="vehicleItem" stylesheets="@css/style.css">
+         <children>
+            <VBox layoutY="27.0" prefHeight="480.0" prefWidth="293.0">
+               <children>
+                  <ImageView fx:id="vehicleImage" fitHeight="459.0" fitWidth="293.0" pickOnBounds="true" preserveRatio="true">
+                     <VBox.margin>
+                        <Insets left="20.0" top="30.0" />
+                     </VBox.margin>
+                     <image>
+                        <Image url="@images/car2.jpg" />
+                     </image>
+                  </ImageView>
+               </children>
+            </VBox>
+         </children>
+         <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+         </padding>
+      </AnchorPane>
+      <VBox layoutX="865.0" layoutY="165.0">
+         <children>
+            <HBox prefHeight="74.0" prefWidth="337.0">
+               <children>
+                  <Label text="Vehicle Type: ">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets bottom="20.0" left="20.0" right="10.0" top="20.0" />
+                     </HBox.margin>
+                  </Label>
+                  <Label fx:id="vehicleType" text="Car">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets bottom="30.0" right="20.0" top="20.0" />
+                     </HBox.margin>
+                  </Label>
+               </children>
+            </HBox>
+            <HBox prefHeight="74.0" prefWidth="337.0">
+               <children>
+                  <Label text="Vehicle Color: ">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets bottom="20.0" left="20.0" right="10.0" top="20.0" />
+                     </HBox.margin>
+                  </Label>
+                  <Label fx:id="color" text="Red">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets bottom="30.0" right="20.0" top="20.0" />
+                     </HBox.margin>
+                  </Label>
+               </children>
+            </HBox>
+            <HBox prefHeight="74.0" prefWidth="337.0">
+               <children>
+                  <Label text="Vehicle Model: ">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets bottom="20.0" left="20.0" right="10.0" top="20.0" />
+                     </HBox.margin>
+                  </Label>
+                  <Label fx:id="model" text="BMW">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets bottom="30.0" right="20.0" top="20.0" />
+                     </HBox.margin>
+                  </Label>
+               </children>
+            </HBox>
+            <HBox prefHeight="74.0" prefWidth="337.0">
+               <children>
+                  <Label text="Vehicle Make: ">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets bottom="20.0" left="20.0" right="10.0" top="20.0" />
+                     </HBox.margin>
+                  </Label>
+                  <Label fx:id="make" text="BMW">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets bottom="30.0" right="20.0" top="20.0" />
+                     </HBox.margin>
+                  </Label>
+               </children>
+            </HBox>
+            <HBox layoutX="10.0" layoutY="242.0" prefHeight="74.0" prefWidth="337.0">
+               <children>
+                  <Label text="Vehicle Licence Plate: ">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets bottom="20.0" left="20.0" right="10.0" top="20.0" />
+                     </HBox.margin>
+                  </Label>
+                  <Label fx:id="number" text="146EUW">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets bottom="30.0" right="20.0" top="20.0" />
+                     </HBox.margin>
+                  </Label>
+               </children>
+            </HBox>
+            <HBox layoutX="10.0" layoutY="319.0" prefHeight="74.0" prefWidth="337.0">
+               <children>
+                  <Label text="Vehicle Speed: ">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets bottom="20.0" left="20.0" right="10.0" top="20.0" />
+                     </HBox.margin>
+                  </Label>
+                  <Label fx:id="speed" text="56.5">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets bottom="30.0" right="20.0" top="20.0" />
+                     </HBox.margin>
+                  </Label>
+               </children>
+            </HBox>
+         </children>
+         <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+         </padding>
+      </VBox>
+    </children>
+</AnchorPane>
