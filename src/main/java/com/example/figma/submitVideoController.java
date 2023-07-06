@@ -1,5 +1,7 @@
 package com.example.figma;
 
+import com.example.figma.entities.Vehicle;
+import com.example.figma.entities.Video;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -21,6 +23,8 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.ResourceBundle;
@@ -29,6 +33,7 @@ public class submitVideoController implements Initializable {
     @FXML
     private TextField distance;
     private static String videoPathStr;
+    private static String absVideoPath;
     Stage stage;
     Scene scene;
     EventHandler<MouseEvent> exitEventHandler =
@@ -63,6 +68,7 @@ public class submitVideoController implements Initializable {
                     File file = fileChooser.showOpenDialog(stage);
                     videoPath.setText(file.getName());
                     videoPathStr = videoPath.getText();
+                    absVideoPath = file.getAbsolutePath();
                     if(!submitFormValidator.validateVideoPath(videoPath.getText(), scenePane))
                         return;
                     try {
@@ -143,6 +149,11 @@ public class submitVideoController implements Initializable {
         if(!com.example.figma.submitFormValidator.validateDistance(distance.getText(), scenePane))
             return;
         /////// TODO upload video and call api ///////
+        ArrayList<Vehicle> vehicles = APIController.callApi(absVideoPath, "http://db41-34-71-34-206.ngrok-free.app");
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+        LocalDateTime now = LocalDateTime.now();
+        IPersistence connection = SQLImplementation.getInstance();
+        connection.addVideo(new Video(videoPathStr, dtf.format(now), vehicles.size(), vehicles));
         switchToHistory(event);
     }
 }

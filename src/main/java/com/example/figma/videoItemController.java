@@ -42,7 +42,7 @@ public class videoItemController implements Initializable {
         videoID.setText(String.valueOf(video.getID()));
         videoDate.setText(video.getDate());
         videoName.setText(video.getName());
-        numberOfVehicles.setText(video.getNumberOfVehicles());
+        numberOfVehicles.setText(String.valueOf(video.getNumberOfVehicles()));
         searchBtn.setImage(new Image(Objects.requireNonNull(getClass().getResourceAsStream("images/search.png"))));
     }
 

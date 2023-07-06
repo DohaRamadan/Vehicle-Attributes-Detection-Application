@@ -10,6 +10,19 @@ public class Vehicle {
     private String licencePlateString;
     private String licencePlateImage;
     private Integer ID;
+    private Integer videoID;
+
+    public Integer getVideoID() {
+        return videoID;
+    }
+
+    public void setVideoID(Integer videoID) {
+        this.videoID = videoID;
+    }
+
+    public Vehicle(){
+
+    }
 
     public Vehicle(String type, Integer ID, String model, String make, String color, double speed, String imageSrc, String licencePlateString, String licencePlateImage) {
         this.model = model;

@@ -13,6 +13,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 
@@ -55,7 +56,7 @@ public class vehicleItemController {
         this.vehicle = vehicle;
         vehicleID.setText("#" + vehicle.getID());
         vehicleType.setText(vehicle.getType());
-        vehicleImg.setImage(new Image(Objects.requireNonNull(getClass().getResource(vehicle.getImageSrc())).toString(), true));
+        vehicleImg.setImage(new Image(getClass().getResource(vehicle.getImageSrc()).toExternalForm()));
         vehiclePane.addEventHandler(MouseEvent.MOUSE_CLICKED, eventHandler);
     }
 }

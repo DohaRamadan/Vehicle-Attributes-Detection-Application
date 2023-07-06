@@ -1,25 +1,31 @@
 package com.example.figma.entities;
 
+import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Video {
-    String name, date, numberOfVehicles;
-    Integer ID;
-    List<Vehicle> detectedVehicles;
+    String name, date;
+    int numberOfVehicles;
+    int ID;
+    ArrayList<Vehicle> detectedVehicles;
 
-    public Video(Integer ID, String name, String date, String numberOfVehicles, List<Vehicle> detectedVehicles) {
+    public Video(String name, String date, int numberOfVehicles, ArrayList<Vehicle>  detectedVehicles) {
         this.name = name;
         this.date = date;
         this.numberOfVehicles = numberOfVehicles;
         this.detectedVehicles = detectedVehicles;
-        this.ID = ID;
     }
 
-    public Integer getID() {
+    public Video(){
+
+    }
+
+    public int getID() {
         return ID;
     }
 
-    public void setID(Integer ID) {
+    public void setID(int ID) {
         this.ID = ID;
     }
 
@@ -35,7 +41,7 @@ public class Video {
         return detectedVehicles;
     }
 
-    public void setDetectedVehicles(List<Vehicle> detectedVehicles) {
+    public void setDetectedVehicles(ArrayList<Vehicle>  detectedVehicles) {
         this.detectedVehicles = detectedVehicles;
     }
 
@@ -48,11 +54,11 @@ public class Video {
         this.date = date;
     }
 
-    public String getNumberOfVehicles() {
+    public int getNumberOfVehicles() {
         return numberOfVehicles;
     }
 
-    public void setNumberOfVehicles(String numberOfVehicles) {
+    public void setNumberOfVehicles(int numberOfVehicles) {
         this.numberOfVehicles = numberOfVehicles;
     }
 }
