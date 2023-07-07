@@ -1,36 +1,62 @@
 package com.example.figma;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.io.File;
+import java.io.IOException;
+import java.sql.*;
+import java.util.logging.Logger;
 
 public class SQLDatabaseConnection {
+
     private static SQLDatabaseConnection connectionInstance;
-    private static Connection connectionToDataBase;
+    private static Connection connectiontoDataBase;
 
     private SQLDatabaseConnection(){
 
     }
 
-    private static Connection connect(){
-        String databaseName = "vad";
-        String databaseUser = "";
-        String databasePassword = "";
-        String url = "jdbc:mysql://localhost/" + databaseName;
-
-        try{
-//            Class.forName("com.mysql.cj.Driver");
-            connectionToDataBase = DriverManager.getConnection(url, "root", "161112");
+    private static Connection connect() throws IOException {
+        File databaseFile = new File("vadDatabase.db");
+        if(!databaseFile.exists()){
+            databaseFile.createNewFile();
+        }
+        String url = "jdbc:sqlite:vadDatabase.db";
+        Connection connection = null;
+        try {
+            connection = DriverManager.getConnection(url);
+            System.out.println("Connection to the database has been setup");
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
-        return connectionToDataBase;
+        return connection;
     }
 
-    public static Connection getConnectionToDataBase(){
-        if(connectionToDataBase == null){
-            connectionToDataBase = connectionInstance.connect();
+    public static boolean tableExists(String tableName) throws IOException {
+//        connect();
+        try{
+            DatabaseMetaData md = connectiontoDataBase.getMetaData();
+            ResultSet rs = md.getTables(null, null, tableName, null);
+            rs.last();
+            return rs.getRow() > 0;
+        }catch(SQLException ex){
+            ex.printStackTrace();
         }
-        return connectionToDataBase;
+        return false;
     }
+
+    public static Connection getConnectionToDataBase() throws IOException {
+        if(connectiontoDataBase == null){
+            connectiontoDataBase = connectionInstance.connect();
+            checkTables();
+        }
+
+        return connectiontoDataBase;
+    }
+
+    public static void checkTables() throws IOException {
+        SQLImplementation.createVideoTable();
+        SQLImplementation.createVehicleTable();
+    }
+
+
+
 }

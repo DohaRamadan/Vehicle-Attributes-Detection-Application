@@ -4,6 +4,7 @@ import com.example.figma.entities.Vehicle;
 import com.example.figma.entities.Video;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.sql.*;
 import java.util.ArrayList;
@@ -11,10 +12,50 @@ import java.util.List;
 
 public class SQLImplementation implements IPersistence{
     private static SQLImplementation instance;
-    private Connection conn;
+    private static Connection conn;
 
     public SQLImplementation() {
 
+    }
+
+    public static void createVideoTable(){
+        String sqlStatement = "CREATE TABLE IF NOT EXISTS \"Video\" (\n" +
+                "\t\"videoID\"\tINTEGER NOT NULL,\n" +
+                "\t\"videoName\"\tTEXT NOT NULL,\n" +
+                "\t\"numberOfVehicles\"\tINTEGER NOT NULL,\n" +
+                "\t\"date\"\tTEXT NOT NULL,\n" +
+                "\tPRIMARY KEY(\"videoID\" AUTOINCREMENT)\n" +
+                ");";
+        try {
+            conn = SQLDatabaseConnection.getConnectionToDataBase();
+            Statement preStatement = conn.createStatement();
+            ResultSet result = preStatement.executeQuery(sqlStatement);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public static void createVehicleTable(){
+        String sqlStatement = "CREATE TABLE IF NOT EXISTS \"Vehicle\" (\n" +
+                "\t\"vehicleID\"\tINTEGER NOT NULL,\n" +
+                "\t\"licencePlateString\"\tTEXT NOT NULL,\n" +
+                "\t\"make\"\tTEXT,\n" +
+                "\t\"model\"\tTEXT,\n" +
+                "\t\"color\"\tTEXT NOT NULL,\n" +
+                "\t\"speed\"\tNUMERIC NOT NULL,\n" +
+                "\t\"vehicleType\"\tTEXT NOT NULL,\n" +
+                "\t\"vehicleImagePath\"\tTEXT NOT NULL,\n" +
+                "\t\"videoID\"\tINTEGER NOT NULL,\n" +
+                "\tPRIMARY KEY(\"vehicleID\" AUTOINCREMENT),\n" +
+                "\tFOREIGN KEY(\"videoID\") REFERENCES \"Video\"\n" +
+                ");";
+        try {
+            conn = SQLDatabaseConnection.getConnectionToDataBase();
+            Statement preStatement = conn.createStatement();
+            ResultSet result = preStatement.executeQuery(sqlStatement);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     public static SQLImplementation getInstance() {
@@ -28,7 +69,7 @@ public class SQLImplementation implements IPersistence{
     @Override
     public void addVehicle(Vehicle vehicle, Integer videoID) {
 
-        String sqlStatement = "INSERT INTO vehicle(LicencePlateString, make, model, color, speed, trackerID, vehicleImage, vehicleImagePath, videoID, vehicleType) Values(?,?,?,?,?,?,?,?,?,?)";
+        String sqlStatement = "INSERT INTO Vehicle(LicencePlateString, make, model, color, speed, vehicleImagePath, videoID, vehicleType) Values(?,?,?,?,?,?,?,?)";
         try {
             conn = SQLDatabaseConnection.getConnectionToDataBase();
             PreparedStatement preStatement = conn.prepareStatement(sqlStatement);
@@ -37,12 +78,9 @@ public class SQLImplementation implements IPersistence{
             preStatement.setString(3, vehicle.getModel());
             preStatement.setString(4, vehicle.getColor());
             preStatement.setDouble(5, vehicle.getSpeed());
-            preStatement.setInt(6, vehicle.getID());
-            InputStream in = new FileInputStream(vehicle.getImageSrc());
-            preStatement.setBlob(7, in);
-            preStatement.setString(8, vehicle.getImageSrc());
-            preStatement.setInt(9, videoID);
-            preStatement.setString(10, vehicle.getType());
+            preStatement.setString(6, vehicle.getImageSrc());
+            preStatement.setInt(7, videoID);
+            preStatement.setString(8, vehicle.getType());
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -51,7 +89,7 @@ public class SQLImplementation implements IPersistence{
 
     @Override
     public void addVideo(Video video) {
-        String sqlStatement = "INSERT INTO video(videoName, numberOfVehicles, date) Values(?,?,?,?)";
+        String sqlStatement = "INSERT INTO Video(videoName, numberOfVehicles, date) Values(?,?,?)";
         try {
             conn = SQLDatabaseConnection.getConnectionToDataBase();
             PreparedStatement preStatement = conn.prepareStatement(sqlStatement);
@@ -70,7 +108,7 @@ public class SQLImplementation implements IPersistence{
 
     @Override
     public List<Video> getVideos() {
-        String sqlStatement = "SELECT * FROM video";
+        String sqlStatement = "SELECT * FROM Video";
         List<Video> videos = new ArrayList<>();
         try {
             conn = SQLDatabaseConnection.getConnectionToDataBase();
@@ -79,13 +117,17 @@ public class SQLImplementation implements IPersistence{
             while (result.next()) {
                 Video video = new Video();
                 video.setID(result.getInt("videoID"));
-                video.setName(result.getString("VideoName"));
+                video.setName(result.getString("videoName"));
                 video.setNumberOfVehicles(result.getInt("numberOfVehicles"));
                 video.setDetectedVehicles((ArrayList<Vehicle>) getVehicles(video.getID()));
+                video.setDate(result.getString("date"));
+                videos.add(video);
             }
 
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return videos;
     }
@@ -93,7 +135,7 @@ public class SQLImplementation implements IPersistence{
     @Override
     public List<Vehicle> getVehicles(Integer videoID) {
         List<Vehicle> vehicles = new ArrayList<>();
-        String sqlStatement = "SELECT * FROM vehicle WHERE videoID=" + videoID;
+        String sqlStatement = "SELECT * FROM Vehicle WHERE videoID=" + videoID;
         try {
             conn = SQLDatabaseConnection.getConnectionToDataBase();
             Statement preStatement = conn.createStatement();
@@ -108,10 +150,11 @@ public class SQLImplementation implements IPersistence{
                 vehicle.setType(result.getString("vehicleType"));
                 vehicle.setSpeed(result.getDouble("speed"));
                 vehicle.setImageSrc(result.getString("vehicleImagePath"));
+                vehicle.setID(result.getInt("vehicleID"));
                 vehicles.add(vehicle);
             }
 
-        } catch (SQLException e) {
+        } catch (SQLException | IOException e) {
             System.out.println(e.getMessage());
         }
         return vehicles;

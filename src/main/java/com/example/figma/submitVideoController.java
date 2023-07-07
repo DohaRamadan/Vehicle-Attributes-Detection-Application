@@ -149,7 +149,7 @@ public class submitVideoController implements Initializable {
         if(!com.example.figma.submitFormValidator.validateDistance(distance.getText(), scenePane))
             return;
         /////// TODO upload video and call api ///////
-        ArrayList<Vehicle> vehicles = APIController.callApi(absVideoPath, "http://db41-34-71-34-206.ngrok-free.app");
+        ArrayList<Vehicle> vehicles = APIController.callApi(absVideoPath, "http://8c53-34-126-156-120.ngrok-free.app");
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
         LocalDateTime now = LocalDateTime.now();
         IPersistence connection = SQLImplementation.getInstance();
