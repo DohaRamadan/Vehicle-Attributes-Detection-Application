@@ -38,7 +38,7 @@ public class submitFormValidator {
             return false;
         }
 
-        if(Integer.parseInt(distance) <= 0){
+        if(Float.parseFloat(distance) <= 0){
             showAlert(scenePane.getScene().getWindow(), "Please enter a valid distance [>= 1]");
             return false;
         }

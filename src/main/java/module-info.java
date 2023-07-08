@@ -12,6 +12,7 @@ module com.example.figma {
     requires eu.hansolo.tilesfx;
     requires java.desktop;
     requires org.bytedeco.javacv;
+    requires java.net.http;
 
     opens com.example.figma to javafx.fxml;
     exports com.example.figma;

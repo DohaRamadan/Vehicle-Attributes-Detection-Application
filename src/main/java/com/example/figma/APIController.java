@@ -1,9 +1,16 @@
 package com.example.figma;
 
 import com.example.figma.entities.Vehicle;
+import javafx.util.Pair;
 
-import java.io.*;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.net.HttpURLConnection;
+import java.io.*;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,22 +19,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class APIController {
 
-//    //////// TODO
-//    Vehicle vehicle = new Vehicle(type, trackerID, model, make, "RED", 67, "images/car1.jpg", lpText , "");
-//
-//    // Print the car details
-//                System.out.println("Tracker ID: " + vehicle.getID());
-//                System.out.println("Type: " + vehicle.getType());
-//                System.out.println("Make: " + vehicle.getMake());
-//                System.out.println("Model: " + vehicle.getModel());
-//                System.out.println("License Plate Text: " + vehicle.getLicencePlateString());
-//                result.add(vehicle);
 
     public static String checkProcessingStatus(String apiHttp) throws IOException {
 
@@ -84,8 +80,6 @@ public class APIController {
         // Write the closing boundary
         String closingBoundary = "\r\n--" + boundary + "--\r\n";
         outputStream.write(closingBoundary.getBytes());
-
-        System.out.println("---------------------------- Processing ----------------------------");
         // Close the streams
         fileInputStream.close();
         outputStream.close();
@@ -95,24 +89,65 @@ public class APIController {
         System.out.println(responseCode);
 
 
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            // Read the response
-            return true;
+        return responseCode == 200;
+    }
+
+    public static void  sendSpeedAttr(String apiHttp, ArrayList<Pair<Integer, Integer>> mouseClicks, float distance) throws IOException, InterruptedException {
+        List<Integer> numbers = new ArrayList<>();
+        numbers.add(mouseClicks.get(mouseClicks.size() - 4).getKey());
+        numbers.add(mouseClicks.get(mouseClicks.size() - 4).getValue());
+
+        numbers.add(mouseClicks.get(mouseClicks.size() - 3).getKey());
+        numbers.add(mouseClicks.get(mouseClicks.size() - 3).getValue());
+
+        numbers.add(mouseClicks.get(mouseClicks.size() - 2).getKey());
+        numbers.add(mouseClicks.get(mouseClicks.size() - 2).getValue());
+
+        numbers.add(mouseClicks.get(mouseClicks.size() - 1).getKey());
+        numbers.add(mouseClicks.get(mouseClicks.size() - 1).getValue());
+        float numberFloat = distance;
+        // Create a JSON string payload
+        String payload = "{\"numbers_int\":" + numbers.toString() + ", \"number_float\":" + numberFloat + "}";
+        // Make a POST request to the Flask endpoint
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(apiHttp+"/send_speed_attr"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(payload))
+                .build();
+        try {
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            System.out.println(response.body());  // Print the response from the Flask server
+        } catch (Exception e) {
+            e.printStackTrace();
+
         }
-        if (responseCode == 503) {
+    }
+
+    public static String processingVideo(String apiHttp) throws IOException, InterruptedException {
+        System.out.println("---------------------------- Processing ----------------------------");
+        URL url = new URL(apiHttp + "/process_video");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+        // Get the response code
+        int responseCode = connection.getResponseCode();
+        if (responseCode == 200) {
+            return "completed";
+        } else if (responseCode == 503) {
             int retries = 1;
-            int maxRetries = 10;
-            System.out.println("hi");
+            int maxRetries = 50;
+            System.out.println("delay");
             String status = checkProcessingStatus(apiHttp);
             while (status.equals("in_progress") && retries < maxRetries) {
                 waitForProcessingCompletion();
                 status = checkProcessingStatus(apiHttp);
                 retries++;
             }
-            return true;
+            return "completed";
         }
-        return false;
+        return "failed";
     }
+
 
     public static ArrayList<Vehicle> getTextData(String apiHttp) throws IOException {
         String rawData = null;
@@ -139,6 +174,7 @@ public class APIController {
         }
         ArrayList<String> strings = new ArrayList<>();
         ArrayList<Vehicle> vehicles = new ArrayList<>();
+        System.out.println(rawData);
         String[] parts = rawData.split("ss");
         for (String part : parts) {
             String trimmedPart = part.trim();
@@ -156,8 +192,9 @@ public class APIController {
             float makeModelConf = Float.parseFloat(partss[5]);
             String lpText = partss[6].replaceAll("[()',]", "");
             String lpConf = partss[7].replaceAll("[()']", "");  // Remove parentheses and single quotes
-            float speed = Float.parseFloat(partss[8]);
-            Vehicle vehicle = new Vehicle(type, trackerID, model, make, "RED", speed, "", lpText, "");
+            String color = partss[9].replaceAll("[',]", "");
+            float speed = Float.parseFloat(partss[20]);
+            Vehicle vehicle = new Vehicle(type, trackerID, model, make, color, speed, "", lpText, "");
             vehicles.add(vehicle);
         }
         return vehicles;
@@ -195,79 +232,85 @@ public class APIController {
     }
 
 
-    public static ArrayList<Vehicle> callApi(String videoLocation, String apiHttp) throws IOException {
+    public static ArrayList<Vehicle> callApi(String videoLocation, String apiHttp, String formattedTime, ArrayList<Pair<Integer, Integer>> mouseClicks, float distance) throws IOException {
         ArrayList<Vehicle> vehicles = new ArrayList<>();
-
         try {
-
-            if (uploadVideo(videoLocation, apiHttp)) {
-                ArrayList<Vehicle> vehicle = new ArrayList<>();
-                vehicle = getTextData(apiHttp);
-                getImageData("images.zip", apiHttp);
-                Path currentPath = Paths.get("");
-                LocalDateTime now = LocalDateTime.now();
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                String folderName = LocalDateTime.now().format(formatter);
-                String formattedTimestamp = folderName.replace(":", "");
-                System.out.println(folderName);
-
-                try (ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(Path.of("images.zip")))) {
-                    byte[] buffer = new byte[1024];
-                    ZipEntry entry;
-                    while ((entry = zipInputStream.getNextEntry()) != null) {
-                        String entryName = entry.getName();
-                        String destinationFolderName = "C:\\Users\\DOHA\\IdeaProjects\\Figma\\src\\main\\resources\\com\\example\\figma\\"+formattedTimestamp;
-                        File entryFile = new File(destinationFolderName, entryName);
-                        if (entry.isDirectory()) {
-                            entryFile.mkdirs();
-                        } else {
-                            new File(entryFile.getParent()).mkdirs();
-                            FileOutputStream fos = new FileOutputStream(entryFile);
-                            int length;
-                            while ((length = zipInputStream.read(buffer)) > 0) {
-                                fos.write(buffer, 0, length);
-                            }
-                            fos.close();
-                        }
-                        zipInputStream.closeEntry();
-                    }
-                    System.out.println("ZIP file extracted successfully.");
+            /////// TODO wait for upload
+            if (uploadVideo(videoLocation, apiHttp)) ;
+            {
+                System.out.println("==========Uploaded Successfully==========");                // TODO wait for processing
+                sendSpeedAttr(apiHttp, mouseClicks, distance);
+                if (processingVideo(apiHttp).equals("completed"))
+                {
                     vehicles = getTextData(apiHttp);
                     getImageData("images.zip", apiHttp);
+                    Path currentPath = Paths.get("");
+                    LocalDateTime now = LocalDateTime.now();
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                    formattedTime = formattedTime.replace(":", "").replaceAll(" ", "").replaceAll("/", "");
+                    String folderName = formattedTime;
+
+                    System.out.println(folderName);
+
+                    try (ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(Path.of("images.zip")))) {
+                        byte[] buffer = new byte[1024];
+                        ZipEntry entry;
+                        String destinationFolderName = "C:\\Users\\DOHA\\IdeaProjects\\Figma\\src\\main\\resources\\com\\example\\figma\\" + formattedTime;
+                        while ((entry = zipInputStream.getNextEntry()) != null) {
+                            String entryName = entry.getName();
+                            File entryFile = new File(destinationFolderName, entryName);
+                            if (entry.isDirectory()) {
+                                entryFile.mkdirs();
+                            } else {
+                                new File(entryFile.getParent()).mkdirs();
+                                FileOutputStream fos = new FileOutputStream(entryFile);
+                                int length;
+                                while ((length = zipInputStream.read(buffer)) > 0) {
+                                    fos.write(buffer, 0, length);
+                                }
+                                fos.close();
+                            }
+                            zipInputStream.closeEntry();
+                        }
+                        System.out.println("ZIP file extracted successfully.");
+                        vehicles = getTextData(apiHttp);
+                        getImageData("images.zip", apiHttp);
 //                    Path currentPath = Paths.get("");
-                    for (int i = 0; i < vehicles.size(); i++) {
+                        for (int i = 0; i < vehicles.size(); i++) {
 //                vehicles.get(i).setImageSrc(String.valueOf("content/"+vehicles.get(i).getID()+".jpg"));
-                        vehicles.get(i).setImageSrc(formattedTimestamp + "/content/" + vehicles.get(i).getID() + ".png");
-                    }
-                    for (int i = 0; i < vehicles.size(); i++) {
-                        System.out.println("car " + (i + 1) + " : ");
-                        System.out.println("Tracker ID: " + vehicles.get(i).getID());
-                        System.out.println("Type: " + vehicles.get(i).getType());
+                            vehicles.get(i).setImageSrc(destinationFolderName + "\\content\\" + vehicles.get(i).getID() + ".jpg");
+
+                        }
+                        for (int i = 0; i < vehicles.size(); i++) {
+                            System.out.println("car " + (i + 1) + " : ");
+                            System.out.println("Tracker ID: " + vehicles.get(i).getID());
+                            System.out.println("Type: " + vehicles.get(i).getType());
 //                System.out.println("Type Confidence: " + vehicles.get(i).typeConf);
-                        System.out.println("Make: " + vehicles.get(i).getMake());
-                        System.out.println("Model: " + vehicles.get(i).getModel());
+                            System.out.println("Make: " + vehicles.get(i).getMake());
+                            System.out.println("Model: " + vehicles.get(i).getModel());
 //                System.out.println("Make-Model Confidence: " + vehicles.get(i).makeModelConf);
-                        System.out.println("License Plate Text: " + vehicles.get(i).getLicencePlateString());
+                            System.out.println("License Plate Text: " + vehicles.get(i).getLicencePlateString());
 //                System.out.println("License Plate Confidence: " + vehicles.get(i).lpConf);
-                        System.out.println("speed: " + vehicles.get(i).getSpeed());
-                        System.out.println("image path: " + vehicles.get(i).getImageSrc());
+                            System.out.println("speed: " + vehicles.get(i).getSpeed());
+                            System.out.println("image path: " + vehicles.get(i).getImageSrc());
+                        }
+                        System.out.println("hi");
+                        String status = checkProcessingStatus(apiHttp);
+                        System.out.println(status);
+
+
                     }
-                    System.out.println("hi");
-                    String status = checkProcessingStatus(apiHttp);
-                    System.out.println(status);
-                } catch (IOException e) {
-                    e.printStackTrace();
+
                 }
             }
 
+
         } catch (Exception e) {
             System.out.println(e);
+            System.out.println("died");
         }
+
         return vehicles;
     }
 
-//    public static void main(String[] args) throws IOException {
-//        callApi("D:\\grad\\vid.mp4", "http://b6c8-34-125-243-125.ngrok-free.app");
-//
-//    }=
 }

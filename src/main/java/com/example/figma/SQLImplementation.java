@@ -3,6 +3,8 @@ package com.example.figma;
 import com.example.figma.entities.Vehicle;
 import com.example.figma.entities.Video;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +31,7 @@ public class SQLImplementation implements IPersistence{
         try {
             conn = SQLDatabaseConnection.getConnectionToDataBase();
             Statement preStatement = conn.createStatement();
-            ResultSet result = preStatement.executeQuery(sqlStatement);
+            preStatement.executeQuery(sqlStatement);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -52,7 +54,7 @@ public class SQLImplementation implements IPersistence{
         try {
             conn = SQLDatabaseConnection.getConnectionToDataBase();
             Statement preStatement = conn.createStatement();
-            ResultSet result = preStatement.executeQuery(sqlStatement);
+            preStatement.executeQuery(sqlStatement);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -81,6 +83,7 @@ public class SQLImplementation implements IPersistence{
             preStatement.setString(6, vehicle.getImageSrc());
             preStatement.setInt(7, videoID);
             preStatement.setString(8, vehicle.getType());
+            preStatement.executeUpdate();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -97,6 +100,20 @@ public class SQLImplementation implements IPersistence{
             preStatement.setString(1, video.getName());
             preStatement.setInt(2, video.getNumberOfVehicles());
             preStatement.setString(3, video.getDate());
+            int affectedRows =  preStatement.executeUpdate();
+
+            if (affectedRows == 0) {
+                throw new SQLException("Insert failed, no rows affected.");
+            }
+
+            try (ResultSet generatedKeys = preStatement.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    video.setID((int) generatedKeys.getLong(1));
+                }
+                else {
+                    throw new SQLException("Creating user failed, no ID obtained.");
+                }
+            }
             for (Vehicle vehicle : video.getDetectedVehicles()){
                 addVehicle(vehicle, video.getID());
             }
@@ -153,7 +170,6 @@ public class SQLImplementation implements IPersistence{
                 vehicle.setID(result.getInt("vehicleID"));
                 vehicles.add(vehicle);
             }
-
         } catch (SQLException | IOException e) {
             System.out.println(e.getMessage());
         }

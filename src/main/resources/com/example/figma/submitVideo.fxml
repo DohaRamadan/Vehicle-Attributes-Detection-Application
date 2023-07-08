@@ -103,7 +103,7 @@
          </font>
       </Label>
       <TextField fx:id="startPoint1X" layoutX="661.0" layoutY="252.0" prefHeight="25.0" prefWidth="99.0" />
-      <TextField fx:id="distance" layoutX="661.0" layoutY="589.0" prefHeight="25.0" prefWidth="215.0" />
+      <TextField fx:id="distanceField" layoutX="661.0" layoutY="589.0" prefHeight="25.0" prefWidth="215.0" />
       <TextField fx:id="startPoint1Y" layoutX="777.0" layoutY="252.0" prefHeight="25.0" prefWidth="99.0" />
       <Label layoutX="662.0" layoutY="308.0" text="Start Point 2">
          <font>

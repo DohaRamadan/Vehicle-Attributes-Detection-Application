@@ -9,12 +9,15 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
-import java.io.File;
-import java.io.IOException;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.util.Objects;
 
 public class vehicleItemController {
@@ -52,11 +55,29 @@ public class vehicleItemController {
     @FXML
     private AnchorPane vehiclePane;
 
-    public void setData(Vehicle vehicle) {
+    private static Image convertToFxImage(BufferedImage image) {
+        WritableImage wr = null;
+        if (image != null) {
+            wr = new WritableImage(image.getWidth(), image.getHeight());
+            PixelWriter pw = wr.getPixelWriter();
+            for (int x = 0; x < image.getWidth(); x++) {
+                for (int y = 0; y < image.getHeight(); y++) {
+                    pw.setArgb(x, y, image.getRGB(x, y));
+                }
+            }
+        }
+
+        return new ImageView(wr).getImage();
+    }
+
+
+    public void setData(Vehicle vehicle) throws IOException {
         this.vehicle = vehicle;
         vehicleID.setText("#" + vehicle.getID());
         vehicleType.setText(vehicle.getType());
-        vehicleImg.setImage(new Image(getClass().getResource(vehicle.getImageSrc()).toExternalForm()));
+        InputStream in = new FileInputStream(vehicle.getImageSrc());
+        Image image = convertToFxImage(ImageIO.read(in));
+        vehicleImg.setImage(image);
         vehiclePane.addEventHandler(MouseEvent.MOUSE_CLICKED, eventHandler);
     }
 }

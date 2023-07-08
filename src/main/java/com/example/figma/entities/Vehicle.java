@@ -1,5 +1,7 @@
 package com.example.figma.entities;
 
+import java.awt.image.BufferedImage;
+
 public class Vehicle {
     private String type;
     private String model;
@@ -11,6 +13,7 @@ public class Vehicle {
     private String licencePlateImage;
     private Integer ID;
     private Integer videoID;
+
 
     public Integer getVideoID() {
         return videoID;
@@ -25,10 +28,15 @@ public class Vehicle {
     }
 
     public Vehicle(String type, Integer ID, String model, String make, String color, double speed, String imageSrc, String licencePlateString, String licencePlateImage) {
-        this.model = model;
         this.type = type;
+        if(type.equals("motorcycle")){
+            this.make = "motorcycle";
+            this.model = "motorcycle";
+        }else{
+            this.make = make;
+            this.model = model;
+        }
         this.ID = ID;
-        this.make = make;
         this.color = color;
         this.speed = speed;
         this.imageSrc = imageSrc;

@@ -2,6 +2,7 @@ package com.example.figma;
 
 import com.example.figma.entities.Vehicle;
 import com.example.figma.entities.Video;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -18,7 +19,7 @@ import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Pair;
-
+import javafx.scene.control.Button;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -31,9 +32,11 @@ import java.util.ResourceBundle;
 
 public class submitVideoController implements Initializable {
     @FXML
-    private TextField distance;
+    private TextField distanceField;
     private static String videoPathStr;
     private static String absVideoPath;
+    private static ArrayList<Pair<Integer, Integer>> mouseClicks;
+    private static float distance;
     Stage stage;
     Scene scene;
     EventHandler<MouseEvent> exitEventHandler =
@@ -59,6 +62,9 @@ public class submitVideoController implements Initializable {
     private AnchorPane scenePane;
     @FXML
     private TextField videoPath;
+
+    @FXML
+    private Button submitBtn;
     EventHandler<MouseEvent> openFileHandler =
             new EventHandler<>() {
                 @Override
@@ -72,9 +78,9 @@ public class submitVideoController implements Initializable {
                     if(!submitFormValidator.validateVideoPath(videoPath.getText(), scenePane))
                         return;
                     try {
-                        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("screenshotFrame.fxml"));
-                        Parent root = fxmlLoader.load();
-                        screenshotController frameController1 = fxmlLoader.getController();
+                        FXMLLoader fxmlLoader2 = new FXMLLoader(getClass().getResource("screenshotFrame.fxml"));
+                        Parent root = fxmlLoader2.load();
+                        screenshotController frameController1 = fxmlLoader2.getController();
                         frameController1.displayScreenShot(root, file.getAbsolutePath());
                         stage.close();
                     } catch (IOException | InterruptedException | AWTException e) {
@@ -126,6 +132,7 @@ public class submitVideoController implements Initializable {
     }
 
     public void saveCoordinates(ArrayList<Pair<Integer, Integer>> mouseClicks) {
+        this.mouseClicks = mouseClicks;
         videoPath.setText(videoPathStr);
 
         startPoint1X.setText(String.valueOf(mouseClicks.get(mouseClicks.size() - 4).getKey()));
@@ -143,17 +150,55 @@ public class submitVideoController implements Initializable {
 
 
     @FXML
-    void handleSubmission(ActionEvent event) throws IOException {
+    void handleSubmission(ActionEvent actionEvent) throws IOException, InterruptedException {
         if(!com.example.figma.submitFormValidator.validateVideoPath(videoPath.getText(), scenePane))
             return;
-        if(!com.example.figma.submitFormValidator.validateDistance(distance.getText(), scenePane))
+        if(!com.example.figma.submitFormValidator.validateDistance(distanceField.getText(), scenePane))
             return;
-        /////// TODO upload video and call api ///////
-        ArrayList<Vehicle> vehicles = APIController.callApi(absVideoPath, "http://8c53-34-126-156-120.ngrok-free.app");
+        distance = Float.parseFloat(distanceField.getText());
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
         LocalDateTime now = LocalDateTime.now();
-        IPersistence connection = SQLImplementation.getInstance();
-        connection.addVideo(new Video(videoPathStr, dtf.format(now), vehicles.size(), vehicles));
-        switchToHistory(event);
+        String formattedTime = dtf.format(now);
+        formattedTime = formattedTime.replace(":", "").replaceAll(" ","").replaceAll("/", "");
+
+        submitBtn.setText("Please wait....");
+        final boolean[] failed = {false};
+
+        // Create a new Task to run the API call in a background thread
+        Task<ArrayList<Vehicle>> task = new Task<>() {
+            @Override
+            protected ArrayList<Vehicle> call() {
+                 try{
+                     return APIController.callApi(absVideoPath, "http://2fa6-35-240-140-21.ngrok-free.app/", dtf.format(now), mouseClicks, distance);
+                } catch (IOException e) {
+                     e.printStackTrace();
+                     submitBtn.setText("Failed. Please try again.");
+                     failed[0] = true;
+                     return new ArrayList<>();
+                 }
+            }
+        };
+
+        // Set a listener to update the UI after the Task is completed
+        String finalFormattedTime = formattedTime;
+        task.setOnSucceeded(event -> {
+            ArrayList<Vehicle> vehicles = task.getValue();
+            if(!failed[0] || vehicles.size() > 0){
+                submitBtn.setText("Success");
+                IPersistence connection = SQLImplementation.getInstance();
+                connection.addVideo(new Video(videoPathStr, finalFormattedTime, vehicles.size(), vehicles));
+            }
+            try {
+                switchToHistory(actionEvent);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+
+        // Disable the GUI controls to prevent the user from interacting with it
+        scenePane.setDisable(true);
+
+        // Start the Task in a new thread
+        new Thread(task).start();
     }
 }

@@ -75,6 +75,7 @@ public class viewHistoryController implements Initializable {
         IPersistence connection = SQLImplementation.getInstance();
         java.util.List<Video> videos = connection.getVideos();
         List.addAll(videos);
+
         for (Video video : List) {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(getClass().getResource("videoItem.fxml"));
