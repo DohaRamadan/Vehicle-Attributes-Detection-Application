@@ -1,9 +1,12 @@
 package com.example.figma;
+
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
+import javafx.concurrent.Task;
+import javafx.scene.control.Button;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
@@ -37,28 +40,16 @@ public class screenshotController implements Initializable {
 
     Scene scene;
     ArrayList<Pair<Integer, Integer>> mouseClicks = new ArrayList<>();
+    EventHandler<MouseEvent> submitEventHandler =
+            mouseEvent -> Loader.loadScene("submitVideo.fxml", mouseEvent);
+    EventHandler<MouseEvent> historyEventHandler =
+            mouseEvent -> Loader.loadScene("viewHistory.fxml", mouseEvent);
+    EventHandler<MouseEvent> mainEventHandler =
+            mouseEvent -> Loader.loadScene("mainWindow.fxml", mouseEvent);
     @FXML
     private ImageView imageView;
-
     @FXML
     private AnchorPane scenePane;
-
-    @FXML
-    private HBox mainWindowBox;
-
-    @FXML
-    private HBox submitVideoBox;
-
-    @FXML
-    private HBox viewHistoryBox;
-
-    @FXML
-    private HBox exitBox;
-
-
-    @FXML
-    private Label guideText;
-
     EventHandler<MouseEvent> exitEventHandler =
             new EventHandler<>() {
                 @Override
@@ -66,22 +57,20 @@ public class screenshotController implements Initializable {
                     ExitController.exitAlarm(scenePane);
                 }
             };
-
-    EventHandler<MouseEvent> submitEventHandler =
-            mouseEvent -> Loader.loadScene("submitVideo.fxml", mouseEvent);
-
-
-    EventHandler<MouseEvent> historyEventHandler =
-            mouseEvent -> Loader.loadScene("viewHistory.fxml", mouseEvent);
-
-    EventHandler<MouseEvent> mainEventHandler =
-            mouseEvent -> Loader.loadScene("mainWindow.fxml", mouseEvent);
-
+    @FXML
+    private HBox mainWindowBox;
+    @FXML
+    private HBox submitVideoBox;
+    @FXML
+    private HBox viewHistoryBox;
+    @FXML
+    private HBox exitBox;
+    @FXML
+    private Label guideText;
     EventHandler<MouseEvent> clickEventHandler =
             new EventHandler<>() {
                 @Override
                 public void handle(javafx.scene.input.MouseEvent mouseEvent) {
-                    // TODO //
                     mouseClicks.add(new Pair<>((int) mouseEvent.getX(), (int) mouseEvent.getY()));
                     if (mouseClicks.size() % 4 == 0) {
                         stage = (Stage) ((Node) mouseEvent.getSource()).getScene().getWindow();
@@ -109,16 +98,6 @@ public class screenshotController implements Initializable {
                 }
             };
 
-
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        mainWindowBox.addEventHandler(MouseEvent.MOUSE_PRESSED, mainEventHandler);
-        submitVideoBox.addEventHandler(MouseEvent.MOUSE_PRESSED, submitEventHandler);
-        viewHistoryBox.addEventHandler(MouseEvent.MOUSE_PRESSED, historyEventHandler);
-        exitBox.addEventHandler(MouseEvent.MOUSE_PRESSED, exitEventHandler);
-        imageView.addEventHandler(MouseEvent.MOUSE_PRESSED, clickEventHandler);
-    }
-
     private static Image convertToFxImage(BufferedImage image) {
         WritableImage wr = null;
         if (image != null) {
@@ -134,6 +113,15 @@ public class screenshotController implements Initializable {
         return new ImageView(wr).getImage();
     }
 
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        mainWindowBox.addEventHandler(MouseEvent.MOUSE_PRESSED, mainEventHandler);
+        submitVideoBox.addEventHandler(MouseEvent.MOUSE_PRESSED, submitEventHandler);
+        viewHistoryBox.addEventHandler(MouseEvent.MOUSE_PRESSED, historyEventHandler);
+        exitBox.addEventHandler(MouseEvent.MOUSE_PRESSED, exitEventHandler);
+        imageView.addEventHandler(MouseEvent.MOUSE_PRESSED, clickEventHandler);
+    }
+
     public BufferedImage extractFirstFrame(String videoPath) throws FFmpegFrameGrabber.Exception {
         File myObj = new File(videoPath);
         FFmpegFrameGrabber frameGrabber = new FFmpegFrameGrabber(myObj.getAbsoluteFile());
@@ -144,22 +132,38 @@ public class screenshotController implements Initializable {
             Java2DFrameConverter c = new Java2DFrameConverter();
             f = frameGrabber.grab();
             bi = c.convert(f);
-            ImageIO.write(bi,"png", new File("C:\\Users\\DOHA\\IdeaProjects\\Figma\\src\\main\\resources\\com\\example\\figma\\images\\screenshot.jpg"));
+            ImageIO.write(bi, "png", new File("C:\\Users\\DOHA\\IdeaProjects\\Figma\\src\\main\\resources\\com\\example\\figma\\images\\screenshot.jpg"));
             frameGrabber.stop();
-        } catch (Exception e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
         return bi;
     }
 
-    public void displayScreenShot(Parent root, String videoPath) throws IOException, AWTException, InterruptedException {
-        BufferedImage buff = extractFirstFrame(videoPath);
-        imageView.setImage(convertToFxImage(buff));
-        Scene scene1 = new Scene(root);
-        stage = new Stage();
-        stage.setScene(scene1);
-        stage.show();
+    public void displayScreenShot(Parent root, String videoPath, Button submitBtn, Stage parentStage) throws IOException, AWTException, InterruptedException {
+        // Set the text of the submitBtn to "Please wait...".
+        submitBtn.setText("Please wait...");
+        Task<BufferedImage> task = new Task<>() {
+            @Override
+            protected BufferedImage call() throws Exception {
+                return extractFirstFrame(videoPath);
+            }
+        };
+
+        task.setOnSucceeded(event -> {
+            BufferedImage buff = task.getValue();
+            imageView.setImage(convertToFxImage(buff));
+            // Change the text of the submitBtn back to its original value.
+            submitBtn.setText("Submit");
+
+            Scene scene1 = new Scene(root);
+            this.stage = new Stage();
+            this.stage.setScene(scene1);
+            this.stage.show();
+
+            parentStage.close();
+        });
+
+        new Thread(task).start();
     }
 }

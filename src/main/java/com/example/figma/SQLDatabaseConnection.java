@@ -3,7 +3,6 @@ package com.example.figma;
 import java.io.File;
 import java.io.IOException;
 import java.sql.*;
-import java.util.logging.Logger;
 
 public class SQLDatabaseConnection {
 
@@ -30,18 +29,6 @@ public class SQLDatabaseConnection {
         return connection;
     }
 
-    public static boolean tableExists(String tableName) throws IOException {
-//        connect();
-        try{
-            DatabaseMetaData md = connectiontoDataBase.getMetaData();
-            ResultSet rs = md.getTables(null, null, tableName, null);
-            rs.last();
-            return rs.getRow() > 0;
-        }catch(SQLException ex){
-            ex.printStackTrace();
-        }
-        return false;
-    }
 
     public static Connection getConnectionToDataBase() throws IOException {
         if(connectiontoDataBase == null){
@@ -52,7 +39,7 @@ public class SQLDatabaseConnection {
         return connectiontoDataBase;
     }
 
-    public static void checkTables() throws IOException {
+    public static void checkTables() {
         SQLImplementation.createVideoTable();
         SQLImplementation.createVehicleTable();
     }

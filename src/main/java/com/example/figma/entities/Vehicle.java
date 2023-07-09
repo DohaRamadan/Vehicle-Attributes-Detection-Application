@@ -1,7 +1,5 @@
 package com.example.figma.entities;
 
-import java.awt.image.BufferedImage;
-
 public class Vehicle {
     private String type;
     private String model;

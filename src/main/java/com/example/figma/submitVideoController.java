@@ -81,9 +81,8 @@ public class submitVideoController implements Initializable {
                         FXMLLoader fxmlLoader2 = new FXMLLoader(getClass().getResource("screenshotFrame.fxml"));
                         Parent root = fxmlLoader2.load();
                         screenshotController frameController1 = fxmlLoader2.getController();
-                        frameController1.displayScreenShot(root, file.getAbsolutePath());
-                        stage.close();
-                    } catch (IOException | InterruptedException | AWTException e) {
+                        frameController1.displayScreenShot(root, file.getAbsolutePath(), submitBtn, stage);
+                    } catch (IOException | AWTException | InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
@@ -132,7 +131,7 @@ public class submitVideoController implements Initializable {
     }
 
     public void saveCoordinates(ArrayList<Pair<Integer, Integer>> mouseClicks) {
-        this.mouseClicks = mouseClicks;
+        submitVideoController.mouseClicks = mouseClicks;
         videoPath.setText(videoPathStr);
 
         startPoint1X.setText(String.valueOf(mouseClicks.get(mouseClicks.size() - 4).getKey()));
@@ -150,7 +149,7 @@ public class submitVideoController implements Initializable {
 
 
     @FXML
-    void handleSubmission(ActionEvent actionEvent) throws IOException, InterruptedException {
+    void handleSubmission(ActionEvent actionEvent) {
         if(!com.example.figma.submitFormValidator.validateVideoPath(videoPath.getText(), scenePane))
             return;
         if(!com.example.figma.submitFormValidator.validateDistance(distanceField.getText(), scenePane))
@@ -183,16 +182,20 @@ public class submitVideoController implements Initializable {
         String finalFormattedTime = formattedTime;
         task.setOnSucceeded(event -> {
             ArrayList<Vehicle> vehicles = task.getValue();
-            if(!failed[0] || vehicles.size() > 0){
+            if(!failed[0] && vehicles != null){
                 submitBtn.setText("Success");
                 IPersistence connection = SQLImplementation.getInstance();
                 connection.addVideo(new Video(videoPathStr, finalFormattedTime, vehicles.size(), vehicles));
+                try {
+                    switchToHistory(actionEvent);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }else{
+                submitBtn.setText("Failed. Please try again.");
+                scenePane.setDisable(false);
             }
-            try {
-                switchToHistory(actionEvent);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+
         });
 
         // Disable the GUI controls to prevent the user from interacting with it

@@ -3,20 +3,15 @@ package com.example.figma;
 import com.example.figma.entities.Vehicle;
 import javafx.util.Pair;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.net.HttpURLConnection;
-import java.io.*;
-import java.net.URI;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -43,13 +38,13 @@ public class APIController {
         return responseBody;
     }
 
-    public static void waitForProcessingCompletion() throws IOException, InterruptedException {
+    public static void waitForProcessingCompletion() throws InterruptedException {
         long delay = 80000;
         Thread.sleep(delay);
     }
 
 
-    public static boolean uploadVideo(String videoLocation, String apiHttp) throws IOException, InterruptedException {
+    public static boolean uploadVideo(String videoLocation, String apiHttp) throws IOException {
         System.out.println("---------------------------- Uploading video ----------------------------");
         URL url = new URL(apiHttp + "/Vechicle_Attribute_Detection");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -92,7 +87,7 @@ public class APIController {
         return responseCode == 200;
     }
 
-    public static void  sendSpeedAttr(String apiHttp, ArrayList<Pair<Integer, Integer>> mouseClicks, float distance) throws IOException, InterruptedException {
+    public static void  sendSpeedAttr(String apiHttp, ArrayList<Pair<Integer, Integer>> mouseClicks, float distance) {
         List<Integer> numbers = new ArrayList<>();
         numbers.add(mouseClicks.get(mouseClicks.size() - 4).getKey());
         numbers.add(mouseClicks.get(mouseClicks.size() - 4).getValue());
@@ -105,9 +100,8 @@ public class APIController {
 
         numbers.add(mouseClicks.get(mouseClicks.size() - 1).getKey());
         numbers.add(mouseClicks.get(mouseClicks.size() - 1).getValue());
-        float numberFloat = distance;
         // Create a JSON string payload
-        String payload = "{\"numbers_int\":" + numbers.toString() + ", \"number_float\":" + numberFloat + "}";
+        String payload = "{\"numbers_int\":" + numbers.toString() + ", \"number_float\":" + distance + "}";
         // Make a POST request to the Flask endpoint
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
@@ -182,8 +176,8 @@ public class APIController {
                 strings.add(trimmedPart);
             }
         }
-        for (int i = 0; i < strings.size(); i++) {
-            String[] partss = strings.get(i).split("\\s+");
+        for (String string : strings) {
+            String[] partss = string.split("\\s+");
             int trackerID = Integer.parseInt(partss[0]);
             String type = partss[1];
             float typeConf = Float.parseFloat(partss[2]);
@@ -213,7 +207,6 @@ public class APIController {
                 FileOutputStream fileOutputStream = new FileOutputStream(savePath);
                 byte[] buffer = new byte[1024];
                 int bytesRead;
-                System.out.println("hi");
                 while ((bytesRead = inputStream.read(buffer)) != -1) {
                     fileOutputStream.write(buffer, 0, bytesRead);
                 }
@@ -235,18 +228,14 @@ public class APIController {
     public static ArrayList<Vehicle> callApi(String videoLocation, String apiHttp, String formattedTime, ArrayList<Pair<Integer, Integer>> mouseClicks, float distance) throws IOException {
         ArrayList<Vehicle> vehicles = new ArrayList<>();
         try {
-            /////// TODO wait for upload
-            if (uploadVideo(videoLocation, apiHttp)) ;
+            if (uploadVideo(videoLocation, apiHttp))
             {
-                System.out.println("==========Uploaded Successfully==========");                // TODO wait for processing
+                System.out.println("==========Uploaded Successfully==========");
                 sendSpeedAttr(apiHttp, mouseClicks, distance);
                 if (processingVideo(apiHttp).equals("completed"))
                 {
                     vehicles = getTextData(apiHttp);
                     getImageData("images.zip", apiHttp);
-                    Path currentPath = Paths.get("");
-                    LocalDateTime now = LocalDateTime.now();
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                     formattedTime = formattedTime.replace(":", "").replaceAll(" ", "").replaceAll("/", "");
                     String folderName = formattedTime;
 
@@ -275,9 +264,7 @@ public class APIController {
                         System.out.println("ZIP file extracted successfully.");
                         vehicles = getTextData(apiHttp);
                         getImageData("images.zip", apiHttp);
-//                    Path currentPath = Paths.get("");
                         for (int i = 0; i < vehicles.size(); i++) {
-//                vehicles.get(i).setImageSrc(String.valueOf("content/"+vehicles.get(i).getID()+".jpg"));
                             vehicles.get(i).setImageSrc(destinationFolderName + "\\content\\" + vehicles.get(i).getID() + ".jpg");
 
                         }
@@ -285,31 +272,26 @@ public class APIController {
                             System.out.println("car " + (i + 1) + " : ");
                             System.out.println("Tracker ID: " + vehicles.get(i).getID());
                             System.out.println("Type: " + vehicles.get(i).getType());
-//                System.out.println("Type Confidence: " + vehicles.get(i).typeConf);
                             System.out.println("Make: " + vehicles.get(i).getMake());
                             System.out.println("Model: " + vehicles.get(i).getModel());
-//                System.out.println("Make-Model Confidence: " + vehicles.get(i).makeModelConf);
                             System.out.println("License Plate Text: " + vehicles.get(i).getLicencePlateString());
-//                System.out.println("License Plate Confidence: " + vehicles.get(i).lpConf);
                             System.out.println("speed: " + vehicles.get(i).getSpeed());
                             System.out.println("image path: " + vehicles.get(i).getImageSrc());
                         }
-                        System.out.println("hi");
                         String status = checkProcessingStatus(apiHttp);
                         System.out.println(status);
-
-
                     }
 
+                }else{
+                    return null;
                 }
+            }else{
+                return null;
             }
-
-
         } catch (Exception e) {
             System.out.println(e);
-            System.out.println("died");
+            return null;
         }
-
         return vehicles;
     }
 

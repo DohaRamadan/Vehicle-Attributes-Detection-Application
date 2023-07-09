@@ -3,11 +3,7 @@ package com.example.figma;
 import com.example.figma.entities.Vehicle;
 import com.example.figma.entities.Video;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;

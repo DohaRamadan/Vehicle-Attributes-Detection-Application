@@ -1,6 +1,5 @@
 package com.example.figma;
 
-import com.example.figma.entities.Vehicle;
 import com.example.figma.entities.Video;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -17,8 +16,6 @@ import javafx.scene.layout.VBox;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.ResourceBundle;
 
 public class viewHistoryController implements Initializable {
