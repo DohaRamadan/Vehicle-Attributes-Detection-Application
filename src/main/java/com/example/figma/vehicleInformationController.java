@@ -18,7 +18,9 @@ import java.awt.image.BufferedImage;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.RoundingMode;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.ResourceBundle;
 
 public class vehicleInformationController implements Initializable {
@@ -79,6 +81,13 @@ public class vehicleInformationController implements Initializable {
         return new ImageView(wr).getImage();
     }
 
+    public static double truncate(double input) {
+        DecimalFormat decimalFormat = new DecimalFormat("##.##");
+        decimalFormat.setRoundingMode(RoundingMode.DOWN);
+        String formatResult = decimalFormat.format(input);
+        return Double.parseDouble(formatResult);
+    }
+
     public void setData(Vehicle vehicle) throws IOException {
         InputStream in = new FileInputStream(vehicle.getImageSrc());
         Image image = convertToFxImage(ImageIO.read(in));
@@ -87,7 +96,7 @@ public class vehicleInformationController implements Initializable {
         make.setText(vehicle.getMake());
         model.setText(vehicle.getModel());
         number.setText(vehicle.getLicencePlateString());
-        speed.setText(String.valueOf(vehicle.getSpeed()));
+        speed.setText(String.valueOf(truncate(vehicle.getSpeed())) + " km/h");
         vehicleType.setText(vehicle.getType());
     }
 

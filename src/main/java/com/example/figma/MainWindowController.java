@@ -46,6 +46,5 @@ public class MainWindowController implements Initializable {
         submitVideoBox.addEventHandler(MouseEvent.MOUSE_PRESSED, submitEventHandler);
         viewHistoryBox.addEventHandler(MouseEvent.MOUSE_PRESSED, historyEventHandler);
         exitBox.addEventHandler(MouseEvent.MOUSE_PRESSED, exitEventHandler);
-
     }
 }

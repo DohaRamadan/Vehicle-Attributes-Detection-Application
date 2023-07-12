@@ -92,7 +92,6 @@ public class SQLImplementation implements IPersistence{
         try {
             conn = SQLDatabaseConnection.getConnectionToDataBase();
             PreparedStatement preStatement = conn.prepareStatement(sqlStatement);
-//            preStatement.setInt(1, video.getID());
             preStatement.setString(1, video.getName());
             preStatement.setInt(2, video.getNumberOfVehicles());
             preStatement.setString(3, video.getDate());

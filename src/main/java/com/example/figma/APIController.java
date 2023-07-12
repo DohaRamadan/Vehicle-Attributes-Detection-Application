@@ -87,7 +87,7 @@ public class APIController {
         return responseCode == 200;
     }
 
-    public static void  sendSpeedAttr(String apiHttp, ArrayList<Pair<Integer, Integer>> mouseClicks, float distance) {
+    public static void sendSpeedAttr(String apiHttp, ArrayList<Pair<Integer, Integer>> mouseClicks, float distance) {
         List<Integer> numbers = new ArrayList<>();
         numbers.add(mouseClicks.get(mouseClicks.size() - 4).getKey());
         numbers.add(mouseClicks.get(mouseClicks.size() - 4).getValue());
@@ -101,11 +101,11 @@ public class APIController {
         numbers.add(mouseClicks.get(mouseClicks.size() - 1).getKey());
         numbers.add(mouseClicks.get(mouseClicks.size() - 1).getValue());
         // Create a JSON string payload
-        String payload = "{\"numbers_int\":" + numbers.toString() + ", \"number_float\":" + distance + "}";
+        String payload = "{\"numbers_int\":" + numbers + ", \"number_float\":" + distance + "}";
         // Make a POST request to the Flask endpoint
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(apiHttp+"/send_speed_attr"))
+                .uri(URI.create(apiHttp + "/send_speed_attr"))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(payload))
                 .build();
@@ -124,12 +124,12 @@ public class APIController {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
         // Get the response code
-        int responseCode = connection.getResponseCode();
-        if (responseCode == 200) {
-            return "completed";
-        } else if (responseCode == 503) {
+        int responseCode;
+        try {
+            responseCode = connection.getResponseCode();
+        } catch (Exception e) {
             int retries = 1;
-            int maxRetries = 50;
+            int maxRetries = 5000;
             System.out.println("delay");
             String status = checkProcessingStatus(apiHttp);
             while (status.equals("in_progress") && retries < maxRetries) {
@@ -139,7 +139,20 @@ public class APIController {
             }
             return "completed";
         }
-        return "failed";
+        if (responseCode == 200)
+            return "completed";
+        int retries = 1;
+        int maxRetries = 5000;
+        System.out.println("delay");
+        String status = checkProcessingStatus(apiHttp);
+        while (status.equals("in_progress") && retries < maxRetries) {
+            waitForProcessingCompletion();
+            status = checkProcessingStatus(apiHttp);
+            retries++;
+        }
+        return "completed";
+
+
     }
 
 
@@ -228,12 +241,10 @@ public class APIController {
     public static ArrayList<Vehicle> callApi(String videoLocation, String apiHttp, String formattedTime, ArrayList<Pair<Integer, Integer>> mouseClicks, float distance) throws IOException {
         ArrayList<Vehicle> vehicles = new ArrayList<>();
         try {
-            if (uploadVideo(videoLocation, apiHttp))
-            {
+            if (uploadVideo(videoLocation, apiHttp)) {
                 System.out.println("==========Uploaded Successfully==========");
                 sendSpeedAttr(apiHttp, mouseClicks, distance);
-                if (processingVideo(apiHttp).equals("completed"))
-                {
+                if (processingVideo(apiHttp).equals("completed")) {
                     vehicles = getTextData(apiHttp);
                     getImageData("images.zip", apiHttp);
                     formattedTime = formattedTime.replace(":", "").replaceAll(" ", "").replaceAll("/", "");
@@ -282,10 +293,12 @@ public class APIController {
                         System.out.println(status);
                     }
 
-                }else{
+                }
+                else {
                     return null;
                 }
-            }else{
+            }
+        else {
                 return null;
             }
         } catch (Exception e) {

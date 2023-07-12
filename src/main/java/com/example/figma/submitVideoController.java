@@ -37,8 +37,9 @@ public class submitVideoController implements Initializable {
     private static String absVideoPath;
     private static ArrayList<Pair<Integer, Integer>> mouseClicks;
     private static float distance;
-    Stage stage;
-    Scene scene;
+    private String serverLink = "http://c7f2-35-238-222-47.ngrok-free.app/";
+    private Stage stage;
+    private Scene scene;
     EventHandler<MouseEvent> exitEventHandler =
             new EventHandler<>() {
                 @Override
@@ -158,6 +159,7 @@ public class submitVideoController implements Initializable {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
         LocalDateTime now = LocalDateTime.now();
         String formattedTime = dtf.format(now);
+        String videoDate = formattedTime;
         formattedTime = formattedTime.replace(":", "").replaceAll(" ","").replaceAll("/", "");
 
         submitBtn.setText("Please wait....");
@@ -168,7 +170,7 @@ public class submitVideoController implements Initializable {
             @Override
             protected ArrayList<Vehicle> call() {
                  try{
-                     return APIController.callApi(absVideoPath, "http://2fa6-35-240-140-21.ngrok-free.app/", dtf.format(now), mouseClicks, distance);
+                     return APIController.callApi(absVideoPath, serverLink, dtf.format(now), mouseClicks, distance);
                 } catch (IOException e) {
                      e.printStackTrace();
                      submitBtn.setText("Failed. Please try again.");
@@ -185,7 +187,7 @@ public class submitVideoController implements Initializable {
             if(!failed[0] && vehicles != null){
                 submitBtn.setText("Success");
                 IPersistence connection = SQLImplementation.getInstance();
-                connection.addVideo(new Video(videoPathStr, finalFormattedTime, vehicles.size(), vehicles));
+                connection.addVideo(new Video(videoPathStr, videoDate, vehicles.size(), vehicles));
                 try {
                     switchToHistory(actionEvent);
                 } catch (IOException e) {

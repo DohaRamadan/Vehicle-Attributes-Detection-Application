@@ -78,8 +78,8 @@ public class viewHistoryController implements Initializable {
             loader.setLocation(getClass().getResource("videoItem.fxml"));
             try {
                 Parent root = loader.load();
-                videoItemController passwordController = loader.getController();
-                passwordController.setData(video);
+                videoItemController videoItemController = loader.getController();
+                videoItemController.setData(video);
                 videosLayout.getChildren().add(root);
             } catch (IOException e) {
                 e.printStackTrace();
